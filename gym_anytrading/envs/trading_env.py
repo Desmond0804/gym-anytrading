@@ -7,13 +7,17 @@ import matplotlib.pyplot as plt
 
 
 class Actions(Enum):
-    Sell = 0
-    Buy = 1
+    Strong_Sell = 0
+    Sell = 1
+    Hold = 2
+    Buy = 3
+    Strong_Buy = 4
 
 
 class Positions(Enum):
     Short = 0
     Long = 1
+    Flat = 2
 
     def opposite(self):
         return Positions.Short if self == Positions.Long else Positions.Long
@@ -81,7 +85,9 @@ class TradingEnv(gym.Env):
         self._update_profit(action)
 
         trade = False
-        if ((action == Actions.Buy.value and self._position == Positions.Short) or
+        if ((action == Actions.Strong_Buy.value and self._position == Positions.Short) or
+            (action == Actions.Buy.value and self._position == Positions.Short) or
+            (action == Actions.Strong_Sell.value and self._position == Positions.Long) or
             (action == Actions.Sell.value and self._position == Positions.Long)):
             trade = True
 
@@ -121,6 +127,8 @@ class TradingEnv(gym.Env):
                 color = 'red'
             elif position == Positions.Long:
                 color = 'green'
+            elif position == Positions.Flat:
+                color = 'yellow'
             if color:
                 plt.scatter(tick, self.prices[tick], color=color)
 
@@ -147,14 +155,18 @@ class TradingEnv(gym.Env):
 
         short_ticks = []
         long_ticks = []
+        flat_ticks = []
         for i, tick in enumerate(window_ticks):
             if self._position_history[i] == Positions.Short:
                 short_ticks.append(tick)
             elif self._position_history[i] == Positions.Long:
                 long_ticks.append(tick)
+            elif self._position_history[i] == Positions.Flat:
+                flat_ticks.append(tick)
 
         plt.plot(short_ticks, self.prices[short_ticks], 'ro')
         plt.plot(long_ticks, self.prices[long_ticks], 'go')
+        plt.plot(flat_ticks, self.prices[flat_ticks], 'yo')
 
         plt.suptitle(
             "Total Reward: %.6f" % self._total_reward + ' ~ ' +

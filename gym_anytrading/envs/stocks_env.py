@@ -31,7 +31,9 @@ class StocksEnv(TradingEnv):
         step_reward = 0
 
         trade = False
-        if ((action == Actions.Buy.value and self._position == Positions.Short) or
+        if ((action == Actions.Strong_Buy.value and self._position == Positions.Short) or
+            (action == Actions.Buy.value and self._position == Positions.Short) or
+            (action == Actions.Strong_Sell.value and self._position == Positions.Long) or
             (action == Actions.Sell.value and self._position == Positions.Long)):
             trade = True
 
@@ -48,7 +50,9 @@ class StocksEnv(TradingEnv):
 
     def _update_profit(self, action):
         trade = False
-        if ((action == Actions.Buy.value and self._position == Positions.Short) or
+        if ((action == Actions.Strong_Buy.value and self._position == Positions.Short) or
+            (action == Actions.Buy.value and self._position == Positions.Short) or
+            (action == Actions.Strong_Sell.value and self._position == Positions.Long) or
             (action == Actions.Sell.value and self._position == Positions.Long)):
             trade = True
 
@@ -73,11 +77,16 @@ class StocksEnv(TradingEnv):
                        self.prices[current_tick] < self.prices[current_tick - 1]):
                     current_tick += 1
                 position = Positions.Short
-            else:
+            elif self.prices[current_tick] > self.prices[current_tick - 1]:
                 while (current_tick <= self._end_tick and
-                       self.prices[current_tick] >= self.prices[current_tick - 1]):
+                       self.prices[current_tick] > self.prices[current_tick - 1]):
                     current_tick += 1
                 position = Positions.Long
+            else:
+                while (current_tick <= self._end_tick and
+                       self.prices[current_tick] == self.prices[current_tick - 1]):
+                    current_tick += 1
+                position = Positions.Flat
 
             if position == Positions.Long:
                 current_price = self.prices[current_tick - 1]
